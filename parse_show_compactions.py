@@ -1,15 +1,14 @@
+#!/usr/bin/python3
 import datetime
-fileName = "FILE_NAME_HERE"
+import sys
 
 
 def parse_file():
   file = open(fileName, 'r')
-
   '''
 split line looks like:
 ['', ' 1440816       ', ' dbname       ', ' tblname           ', '  partname                         ', ' MAJOR  ', ' failed     ', ' hostname  ', ' 1583272973000  ', ' 0         ', ' None                      ', '\n']
 '''
-
   for line in file:
     if "|" not in line or "compactionid" in line or "Start Time" in line:
       continue
@@ -31,12 +30,21 @@ split line looks like:
   file.close()
 
 def print_last_compaction():
+  header = ["Database", "Table", "Partition", "UTC start", "Local time of start", "Compaction Type", "Status", "Host"]
+  for element in header:
+    print('{:>20}'.format(element), end=" ")
+  print()
   for partitionid in partitionMap:
     status = partitionMap[partitionid][6]
     if status == "failed" or status == "attempted":
-      print(partitionMap[partitionid])
+      for element in partitionMap[partitionid]:
+        print('{:>20}'.format(element), end=" ")
+      print()
 
-print("attention! timestamps are printed in local timezone")
+fileName = sys.argv[1]
+print("Parsing file:", fileName)
 partitionMap = {}
 parse_file()
+
+print("The following tables/partitions' most recent compaction is in a failed or attempted state:")
 print_last_compaction()
