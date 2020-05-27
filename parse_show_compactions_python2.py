@@ -1,9 +1,11 @@
-#!/usr/bin/python3
+#!/usr/bin/python2
 import datetime
 import sys
 
 
 def parse_file():
+  global activeWorkers
+  global waitingCompactions
   file = open(fileName, 'r')
   '''
 split line looks like:
@@ -19,8 +21,16 @@ split line looks like:
     compactionType = lineContents[5].strip()
     status = lineContents[6].strip()
     host = lineContents[7].strip()
-    timestamp = int(lineContents[8].strip())
-    humanreadabletimestamp = datetime.datetime.fromtimestamp(timestamp/1000).strftime("%Y-%m-%d %H:%M:%S")
+    if status != "initiated":
+      timestamp = int(lineContents[8].strip())
+      humanreadabletimestamp = datetime.datetime.fromtimestamp(timestamp/1000).strftime("%Y-%m-%d %H:%M:%S")
+      if status == "working":
+        activeWorkers += 1
+    else:
+      timestamp = "---"
+      humanreadabletimestamp = "---"
+      waitingCompactions += 1
+
     partitionid = dbname + "," + tablename + "," + partition
 
     compactioninfo = [dbname, tablename, partition, timestamp, humanreadabletimestamp, compactionType, status, host]
@@ -44,7 +54,11 @@ def print_last_compaction():
 fileName = sys.argv[1]
 print "Parsing file:", fileName
 partitionMap = {}
+activeWorkers = 0
+waitingCompactions = 0
 parse_file()
 
+print "Active workers:", activeWorkers
+print "Waiting compactions:", waitingCompactions
 print "The following tables/partitions' most recent compaction is in a failed or attempted state:"
 print_last_compaction()
