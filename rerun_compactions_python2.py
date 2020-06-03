@@ -35,25 +35,18 @@ split line looks like:
     if partitionid not in partitionMap.keys() or timestamp > partitionMap[partitionid][3]:
       partitionMap[partitionid] = compactioninfo
 
-def print_last_compaction():
-  header = ["Database", "Table", "Partition", "UTC start", "Local time of start", "Compaction Type", "Status", "Host"]
-  for element in header:
-    print '{:>20}'.format(element),
-  print ""
+def print_rerun_compaction():
   for partitionid in partitionMap:
     status = partitionMap[partitionid][6]
     if status == "failed" or status == "attempted":
-      for element in partitionMap[partitionid]:
-        print '{:>20}'.format(element),
-      print ""
+      if partitionMap[partitionid][2] == "---":
+        print "alter table " + partitionMap[partitionid][0] + "." + partitionMap[partitionid][1] + " compact '" + partitionMap[partitionid][5] + "';"
+      else:
+        print "alter table " + partitionMap[partitionid][0] + "." + partitionMap[partitionid][1] + " partition (" + partitionMap[partitionid][2].replace('/',',') + ") compact '" + partitionMap[partitionid][5] + "';"
 
 partitionMap = {}
 activeWorkers = 0
 waitingCompactions = 0
 parse_file()
 
-print "The following tables/partitions' most recent compaction is in a failed or attempted state:"
-print_last_compaction()
-print
-print "Active workers:", activeWorkers
-print "Waiting compactions:", waitingCompactions
+print_rerun_compaction()
