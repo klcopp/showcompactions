@@ -52,6 +52,8 @@ activeWorkers = 0
 waitingCompactions = 0
 parse_file()
 
+print "Active workers:", activeWorkers
+print "Waiting compactions:", waitingCompactions
 print "The following tables/partitions' most recent compaction is in a failed or attempted state:"
 print_last_compaction()
 print
